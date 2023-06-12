@@ -1,0 +1,57 @@
+{
+	"name": "@authwave/typescript-client",
+	"version": "0.1.0",
+	"description": "Authwave client for Node.js, Express and Next.js",
+	"type": "module",
+	"engines": {
+		"node": ">=22"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"PARITY.md"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./node": {
+			"types": "./dist/node.d.ts",
+			"import": "./dist/node.js"
+		},
+		"./express": {
+			"types": "./dist/express.d.ts",
+			"import": "./dist/express.js"
+		},
+		"./next": {
+			"types": "./dist/next.d.ts",
+			"import": "./dist/next.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"typecheck": "tsc -p tsconfig.json --noEmit && tsc --noEmit --strict --skipLibCheck --target ES2022 --module NodeNext --moduleResolution NodeNext test/types.ts examples/next-route.ts",
+		"test": "npm run build && node --test test/*.test.mjs",
+		"test:parity": "npm run build && node --test test/parity.test.mjs",
+		"prepack": "npm run build",
+		"build:example:next": "next build examples/next --webpack",
+		"format": "prettier --write src test examples package.json tsconfig.json",
+		"format:check": "prettier --check src test examples package.json tsconfig.json"
+	},
+	"dependencies": {
+		"tweetnacl": "^1.0.3"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.6",
+		"@types/express-session": "^1.19.0",
+		"@types/node": "^24.0.0",
+		"express": "^5.1.0",
+		"express-session": "^1.18.2",
+		"next": "^16.0.0",
+		"prettier": "^3.9.10",
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0",
+		"typescript": "^5.9.3"
+	}
+}
