@@ -1,11 +1,11 @@
 # PHP reference parity
 
-Reference: `Authwave/php-client` at `7ff32a63f471c6f25b525a36f0bcae646de46deb` (the sibling checkout at implementation time). Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
+Reference: the sibling `Authwave/php-client` checkout. Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
 
 | PHP source | TypeScript source / export | Validation |
 | --- | --- | --- |
 | `Authenticator.php` | `src/authenticator.ts`: `Authenticator` | Login, restore, callback response, cleanup, saved queries, destination overrides, logout, fake login, deprecated getter |
-| `AuthUser.php` | `src/user.ts`: `AuthUser` | Read-only properties, optional fields, defensive copies |
+| `AuthUser.php` | `src/user.ts`: `AuthUser` | Read-only ID and email properties |
 | `User.php` | `src/user.ts`: `User` | Deprecated subclass and getter identity |
 | `Token.php` | `src/token.ts`: `Token` | Supplied/random IVs, deterministic cipher, decode validation, JSON persistence |
 | `SessionData.php` | `src/session.ts`: `SessionData` | Absent token/data, return query, callback marker, JSON round trip |
@@ -22,19 +22,18 @@ Reference: `Authwave/php-client` at `7ff32a63f471c6f25b525a36f0bcae646de46deb` (
 | `ProviderUri/LogoutUri.php` | `src/uri.ts`: `LogoutUri` | Encrypted destination and precedence |
 | `ProviderUri/AdminUri.php` | `src/uri.ts`: `AdminUri` | `/admin/` |
 | `ResponseData/BaseResponseData.php` | `src/user.ts`: `BaseResponseData` | Optional message |
-| `ResponseData/UserResponseData.php` | `src/user.ts`: `UserResponseData` | ID/email/fields/message accessors |
+| `ResponseData/UserResponseData.php` | `src/user.ts`: `UserResponseData` | ID/email/message accessors |
 
 ## Wire compatibility
 
 TweetNaCl's XSalsa20-Poly1305 secretbox matches the reference's `sodium_crypto_secretbox`: raw UTF-8 key bytes, 24-byte nonces, standard base64 ciphertext and IV strings. Request plaintext is the message followed by literal `&secretIv=` and the base64 session IV. Query keys remain `c`, `d`, `i`, `u`. The complete deployment ID is split at the final underscore, not the first.
 
-The differential suite executes PHP's actual source with fixed nonces and compares complete redirect strings, encrypted request bytes, stored user fields, return-query preservation, callback markers and session removal. Field collections are compared as dictionaries: PHP arrays correspond to TypeScript records.
+The differential suite executes PHP's actual source with fixed nonces and compares complete redirect strings, encrypted request bytes, stored user identity, return-query preservation, callback markers and session removal.
 
 ## Behaviors intentionally preserved
 
 - An already authenticated login does nothing. Token-only sessions remain logged out.
-- The normal response path uses the secret session IV and `id/email/kvp`. `Token.decode()` instead uses the request IV and `uuid` (preferred) or `id`, with `fields`.
-- **Both response paths inherit PHP's JSON-array restriction on field collections.** Normal callback `kvp` must be a JSON array when supplied; a JSON object raises `TypeError` in the reference and this port. The lower-level decoder's `fields` must also be a JSON array. Direct construction of `AuthUser` and `UserResponseData` supports named field dictionaries. The current provider normally sends ID/email without custom fields. Fixing the reference's object-valued custom-field limitation should be coordinated across clients, not silently changed here.
+- The normal response path uses the secret session IV and `id/email`. `Token.decode()` instead uses the request IV and `uuid` (preferred) or `id`.
 - Scalar ID/email coercion in the normal response path follows PHP for string/number/boolean values. The lower-level decoder requires string ID/email.
 - Raw plus characters in incoming response ciphers are restored after form-query parsing.
 - Saved return queries replace callback queries; cleanup removes the response parameter while retaining other raw query bytes and fragments.
@@ -50,7 +49,7 @@ The differential suite executes PHP's actual source with fixed nonces and compar
 - Constructor arguments use an options object; URI-like arguments accept strings, `Uri`, and standard `URL` objects. `Uri` provides the operations needed by the client, not the full external PHP HTTP dependency API.
 - PHP's native `$_SESSION` has no Node equivalent. `GlobalSessionContainer` wraps an explicitly supplied per-request record. Omitting it throws; no process-global user storage is introduced.
 - PHP header-and-exit becomes `RedirectSignal`. Runtime adapters catch it and save before sending 303 responses. Test redirect handlers may return normally.
-- PHP associative arrays become defensive TypeScript records; JSON session records are rehydrated into classes. Token serialization is server-side only.
+- JSON session records are rehydrated into classes. Token serialization is server-side only.
 - PHP `E_USER_DEPRECATED` becomes Node.js `DeprecationWarning`. The PHP logger's diagnostic token-created message is not an authentication behavior and is left to application logging.
 - Node.js/Next.js use opaque 256-bit random session IDs with HTTP-only cookies and a pluggable async server-side store. Express uses the application's `express-session` middleware and saves before output. Store expiration and per-session concurrency control are the production store's responsibility.
 

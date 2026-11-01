@@ -25,27 +25,15 @@ const setup = (data = {}, uri = '/', extra = {}) => {
 		data,
 	};
 };
-test('user and response data accessors, copies, readonly properties, legacy subclass', () => {
-	for (const user of [
-		new A.AuthUser('id', 'email', { role: 'admin' }),
-		new A.User('id', 'email', { role: 'admin' }),
-	]) {
-		assert.equal(user.getData('role'), 'admin');
-		assert.equal(user.getData('missing'), null);
-		assert.equal(user.getData('toString'), null);
-		const data = user.getKvp();
-		data.role = 'other';
-		assert.equal(user.getData('role'), 'admin');
+test('user and response data accessors, readonly properties, legacy subclass', () => {
+	for (const user of [new A.AuthUser('id', 'email'), new A.User('id', 'email')]) {
 		assert.throws(() => (user.id = 'other'), TypeError);
 		assert.ok(user instanceof A.AuthUser);
 	}
-	const d = new A.UserResponseData('id', 'email', { role: 'admin' }, 'Welcome');
+	const d = new A.UserResponseData('id', 'email', 'Welcome');
 	assert.equal(d.getId(), 'id');
 	assert.equal(d.getEmail(), 'email');
 	assert.equal(d.getMessage(), 'Welcome');
-	assert.equal(d.getField('role'), 'admin');
-	assert.equal(d.getField('missing'), null);
-	assert.deepEqual(d.getAllFields(), { role: 'admin' });
 });
 test('exceptions inherit AuthwaveException; absent session/token/data/user', () => {
 	for (const name of [
@@ -85,15 +73,13 @@ test('tokens are random, deterministic per token, supplied IV identities preserv
 	assert.throws(() => new A.InitVector(0), RangeError);
 	assert.throws(() => new A.Token('').generateRequestCipher(), A.EncryptionFailureException);
 });
-test('low-level decode uses request IV, validates JSON and PHP fields array semantics', () => {
+test('low-level decode uses request IV, validates JSON and identity types', () => {
 	const token = new A.Token(secret);
 	const encrypt = (value) => String(new A.CipherText(value, token.getIv(), secret));
 	for (const idName of ['uuid', 'id']) {
-		const d = token.decode(
-			encrypt(JSON.stringify({ [idName]: 'id', email: 'email', fields: ['value'] })),
-		);
+		const d = token.decode(encrypt(JSON.stringify({ [idName]: 'id', email: 'email' })));
 		assert.equal(d.getId(), 'id');
-		assert.equal(d.getField('0'), 'value');
+		assert.equal(d.getEmail(), 'email');
 	}
 	for (const value of [
 		'bad-json',
@@ -102,7 +88,6 @@ test('low-level decode uses request IV, validates JSON and PHP fields array sema
 		'{}',
 		JSON.stringify({ id: 123, email: 'email' }),
 		JSON.stringify({ id: 'id', email: 2 }),
-		JSON.stringify({ id: 'id', email: 'email', fields: { role: 'admin' } }),
 	])
 		assert.throws(() => token.decode(encrypt(value)), A.InvalidUserDataSerializationException);
 	assert.throws(() => token.decode('bad cipher'), A.DecryptionFailureException);
@@ -115,7 +100,7 @@ test('session serialization restores token, data, query and callback marker', ()
 	const token = new A.Token(secret);
 	const d = new A.SessionData(
 		token,
-		new A.UserResponseData('id', 'email', { role: 'admin' }, 'Welcome'),
+		new A.UserResponseData('id', 'email', 'Welcome'),
 		'x=%7e&flag',
 	);
 	assert.equal(d.getToken(), token);

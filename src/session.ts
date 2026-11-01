@@ -34,7 +34,6 @@ export class SessionData {
 					? {
 							id: this.data.getId(),
 							email: this.data.getEmail(),
-							kvp: this.data.getAllFields(),
 							message: this.data.getMessage(),
 						}
 					: null,
@@ -45,9 +44,7 @@ export class SessionData {
 	static fromJSON(value: ReturnType<SessionData['toJSON']>): SessionData {
 		const data = new SessionData(
 			value.token ? Token.fromJSON(value.token) : null,
-			value.data
-				? new UserResponseData(value.data.id, value.data.email, value.data.kvp, value.data.message)
-				: null,
+			value.data ? new UserResponseData(value.data.id, value.data.email, value.data.message) : null,
 			value.returnQuery,
 		);
 		if (value.callbackInvoked) data.markAuthenticationCallbackInvoked();

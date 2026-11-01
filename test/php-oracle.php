@@ -19,7 +19,7 @@ foreach($cases as $index => $case) {
  $redirect = new RecordingRedirect(); $calls = 0;
  $callback = function($user) use (&$calls, $case) { $calls++; if($case['throwCallback'] ?? false) throw new RuntimeException('callback'); };
  if(($case['state'] ?? '') === 'pending') $_SESSION[SessionData::class] = new SessionData($token, null, $case['returnQuery'] ?? null);
- if(($case['state'] ?? '') === 'user') $_SESSION[SessionData::class] = new SessionData($token, new UserResponseData('user-id', $case['email'] ?? 'person@example.com', ['role'=>'admin']));
+ if(($case['state'] ?? '') === 'user') $_SESSION[SessionData::class] = new SessionData($token, new UserResponseData('user-id', $case['email'] ?? 'person@example.com'));
  $uri = $case['uri'] ?? '/account?tab=security';
  if(isset($case['response'])) {
   $cipher = base64_encode(sodium_crypto_secretbox(json_encode($case['response']), str_repeat('a',24), $secret));
@@ -33,8 +33,8 @@ foreach($cases as $index => $case) {
   if(($case['action'] ?? '') === 'logout') $auth->logout($case['redirectTo'] ?? null, $token);
  } catch(Throwable $e) { $error = (new ReflectionClass($e))->getShortName(); }
  $stored = $_SESSION[SessionData::class] ?? null; $userData = null;
- if($stored) { try { $d = $stored->getData(); $userData = [$d->getId(), $d->getEmail(), (object)$d->getAllFields()]; } catch(Authwave\NotLoggedInException) {} }
- $user = $auth && $auth->isLoggedIn() ? [$auth->getAuthUser()->id, $auth->getAuthUser()->email, (object)$auth->getAuthUser()->getKvp()] : null;
+ if($stored) { try { $d = $stored->getData(); $userData = [$d->getId(), $d->getEmail()]; } catch(Authwave\NotLoggedInException) {} }
+ $user = $auth && $auth->isLoggedIn() ? [$auth->getAuthUser()->id, $auth->getAuthUser()->email] : null;
  $out[] = ['redirects'=>$redirect->redirects, 'calls'=>$calls, 'error'=>$error, 'user'=>$user, 'stored'=>$stored !== null, 'data'=>$userData, 'returnQuery'=>$stored?->getReturnQuery(), 'invoked'=>$stored?->hasInvokedAuthenticationCallback(), 'basket'=>$_SESSION['basket']];
 }
 echo json_encode($out, JSON_THROW_ON_ERROR);

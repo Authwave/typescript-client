@@ -21,21 +21,14 @@ export class Token {
 		try {
 			const data = JSON.parse(plain);
 			const id = data?.uuid ?? data?.id;
-			const fields = data?.fields ?? [];
-			// PHP's is_array accepts JSON arrays here, not JSON objects.
 			if (
 				!data ||
 				typeof data !== 'object' ||
 				typeof data.email !== 'string' ||
-				typeof id !== 'string' ||
-				!Array.isArray(fields)
+				typeof id !== 'string'
 			)
 				throw new Error();
-			return new UserResponseData(
-				id,
-				data.email,
-				Object.fromEntries(fields.map((v, i) => [String(i), v])),
-			);
+			return new UserResponseData(id, data.email);
 		} catch (cause) {
 			throw new InvalidUserDataSerializationException('', { cause });
 		}

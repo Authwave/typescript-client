@@ -42,19 +42,17 @@ const cases = [
 			[null, '', 'filter=original&flag&encoded=%7e#no'].map((returnQuery) => ({
 				state: 'pending',
 				uri: '/my-page?filter=changed',
-				response: { id: 'user-id', email: 'person@example.com', kvp: ['admin'] },
+				response: { id: 'user-id', email: 'person@example.com' },
 				callback,
 				rawPlus,
 				returnQuery,
 			})),
 		),
 	),
-	...[
-		{},
-		{ id: null, email: 'email' },
-		{ id: 'id', email: 'email', kvp: { role: 'admin' } },
-		{ id: false, email: 'email' },
-	].map((response) => ({ state: 'pending', response })),
+	...[{}, { id: null, email: 'email' }, { id: false, email: 'email' }].map((response) => ({
+		state: 'pending',
+		response,
+	})),
 	{ state: 'pending', response: { id: 123, email: 'person@example.com' }, callback: true },
 	{
 		state: 'pending',
@@ -93,10 +91,7 @@ for (const [i, c] of cases.entries())
 		if (c.state === 'user')
 			session.set(
 				SessionData.STORE_KEY,
-				new SessionData(
-					token,
-					new UserResponseData('user-id', c.email ?? 'person@example.com', { role: 'admin' }),
-				),
+				new SessionData(token, new UserResponseData('user-id', c.email ?? 'person@example.com')),
 			);
 		let uri = c.uri ?? '/account?tab=security';
 		if (c.response) {
@@ -136,7 +131,7 @@ for (const [i, c] of cases.entries())
 		if (stored) {
 			try {
 				const d = stored.getData();
-				data = [d.getId(), d.getEmail(), d.getAllFields()];
+				data = [d.getId(), d.getEmail()];
 			} catch {}
 		}
 		const u = auth?.isLoggedIn() ? auth.getAuthUser() : null;
@@ -145,7 +140,7 @@ for (const [i, c] of cases.entries())
 				redirects,
 				calls,
 				error,
-				user: u ? [u.id, u.email, u.getKvp()] : null,
+				user: u ? [u.id, u.email] : null,
 				stored: !!stored,
 				data,
 				returnQuery: stored?.getReturnQuery() ?? null,

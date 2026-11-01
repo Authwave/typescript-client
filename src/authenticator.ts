@@ -39,8 +39,7 @@ export class Authenticator {
 		if (this.sessionData) {
 			try {
 				const data = this.sessionData.getData();
-				if (data instanceof UserResponseData)
-					this.user = new User(data.getId(), data.getEmail(), data.getAllFields());
+				if (data instanceof UserResponseData) this.user = new User(data.getId(), data.getEmail());
 			} catch (error) {
 				if (!(error instanceof NotLoggedInException)) throw error;
 			}
@@ -136,26 +135,20 @@ export class Authenticator {
 		const token = this.sessionData.getToken();
 		const returnQuery = this.sessionData.getReturnQuery();
 		const plain = decrypt(queryData, token.getSecretIv(), this.secret);
-		let data: { id?: unknown; email?: unknown; kvp?: unknown };
+		let data: { id?: unknown; email?: unknown };
 		try {
 			data = JSON.parse(plain);
 		} catch {
 			throw new TypeError('Invalid authentication response');
 		}
-		// Match the reference's non-strict scalar coercion and JSON-array check.
+		// Match the reference's non-strict scalar coercion.
 		const scalar = (value: unknown): string => {
 			if (typeof value === 'string' || typeof value === 'number') return String(value);
 			if (typeof value === 'boolean') return value ? '1' : '';
 			throw new TypeError('Expected user id/email scalar');
 		};
-		const fields = data?.kvp ?? [];
-		if (!Array.isArray(fields)) throw new TypeError('Expected kvp JSON array');
-		const userData = new UserResponseData(
-			scalar(data?.id),
-			scalar(data?.email),
-			Object.fromEntries(fields.map((value, index) => [String(index), value])),
-		);
-		this.user = new User(userData.getId(), userData.getEmail(), userData.getAllFields());
+		const userData = new UserResponseData(scalar(data?.id), scalar(data?.email));
+		this.user = new User(userData.getId(), userData.getEmail());
 		const wasInvoked = this.sessionData.hasInvokedAuthenticationCallback();
 		const next = new SessionData(token, userData, returnQuery);
 		if (wasInvoked || this.options.onAuthenticated) next.markAuthenticationCallbackInvoked();
