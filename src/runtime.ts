@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { GlobalSessionContainer } from './session.js';
 export interface SessionStore {
+	delete(id: string): Promise<void>;
 	get(id: string): Promise<Record<string, unknown> | undefined>;
 	set(id: string, data: Record<string, unknown>, expiresAt: number): Promise<void>;
 }
@@ -18,6 +19,9 @@ export class MemorySessionStore implements SessionStore {
 			return;
 		}
 		return JSON.parse(JSON.stringify(entry.data)) as Record<string, unknown>;
+	}
+	async delete(id: string): Promise<void> {
+		this.sessions.delete(id);
 	}
 	async set(id: string, data: Record<string, unknown>, expiresAt: number): Promise<void> {
 		for (const [key, value] of this.sessions)
@@ -47,12 +51,22 @@ export async function openSession(cookie: string | null | undefined, options: Se
 		?.slice(name.length + 1);
 	const stored =
 		candidate && /^[a-f0-9]{64}$/.test(candidate) ? await options.store.get(candidate) : undefined;
-	const id = stored ? candidate! : randomBytes(32).toString('hex');
-	const data = stored ?? {};
-	const setCookie = `${name}=${id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ttl}${options.secureCookie === false ? '' : '; Secure'}`;
+	let id = stored ? candidate! : randomBytes(32).toString('hex');
+	const previousIds: string[] = [];
+	const data: Record<string, unknown> = stored ? JSON.parse(JSON.stringify(stored)) : {};
+	const regenerate = () => {
+		const newId = randomBytes(32).toString('hex');
+		previousIds.push(id);
+		id = newId;
+	};
 	return {
-		session: new GlobalSessionContainer(data),
-		setCookie,
-		commit: () => options.store.set(id, data, Date.now() + ttl * 1000),
+		session: new GlobalSessionContainer(data, regenerate),
+		get setCookie() {
+			return `${name}=${id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ttl}${options.secureCookie === false ? '' : '; Secure'}`;
+		},
+		commit: async () => {
+			for (const oldId of previousIds) await options.store.delete(oldId);
+			await options.store.set(id, data, Date.now() + ttl * 1000);
+		},
 	};
 }

@@ -11,7 +11,7 @@ const record = () => ({
 });
 const setup = (data = {}, uri = '/', extra = {}) => {
 	const redirect = record(),
-		session = new A.SessionArrayWrapper(data);
+		session = new A.SessionArrayWrapper(data, () => {});
 	return {
 		auth: new A.Authenticator({
 			clientKey: key,
@@ -204,7 +204,7 @@ test('fake login stores data, emits decryptable response, defers current user an
 	assert.equal(next2.redirect.destinations.length, 2);
 });
 test('default redirect stops execution, default login/logout tokens, URI objects and admin', () => {
-	const session = new A.SessionArrayWrapper({});
+	const session = new A.SessionArrayWrapper({}, () => {});
 	const auth = new A.Authenticator({
 		clientKey: key,
 		currentUriPath: new URL('https://app.example.com/path'),

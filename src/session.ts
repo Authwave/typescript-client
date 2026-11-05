@@ -1,4 +1,8 @@
-import { NotLoggedInException, SessionNotStartedException } from './errors.js';
+import {
+	NotLoggedInException,
+	SessionNotStartedException,
+	SessionRegenerationException,
+} from './errors.js';
 import { Token } from './token.js';
 import { BaseResponseData, UserResponseData } from './user.js';
 export class SessionData {
@@ -52,6 +56,7 @@ export class SessionData {
 	}
 }
 export interface SessionContainer {
+	regenerate(): void;
 	get(key: string): unknown;
 	set(key: string, value: unknown): void;
 	contains(key: string): boolean;
@@ -59,8 +64,16 @@ export interface SessionContainer {
 }
 /** Wrap an existing request-scoped session; never a process-global session. */
 export class GlobalSessionContainer implements SessionContainer {
-	constructor(private readonly data?: Record<string, unknown>) {
+	constructor(
+		private readonly data?: Record<string, unknown>,
+		private readonly regenerateSession?: () => void,
+	) {
 		if (!data) throw new SessionNotStartedException();
+	}
+	regenerate(): void {
+		if (!this.regenerateSession)
+			throw new SessionRegenerationException('Supply a session regeneration callback');
+		this.regenerateSession();
 	}
 	get(key: string): unknown {
 		const value = this.data![key];

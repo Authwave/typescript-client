@@ -83,7 +83,7 @@ for (const [i, c] of cases.entries())
 			new InitVector().withBytes(Buffer.from('f'.repeat(24))),
 		);
 		const state = { basket: ['tea'] };
-		const session = new SessionArrayWrapper(state);
+		const session = new SessionArrayWrapper(state, () => {});
 		const redirects = [];
 		let calls = 0;
 		if (c.state === 'pending')

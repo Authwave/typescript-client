@@ -5,7 +5,7 @@ const invoke = (path, cookie) =>
 	fetch(origin + path, { headers: cookie ? { cookie } : {}, redirect: 'manual' });
 const initial = await invoke('/login');
 assert.equal(initial.status, 303);
-const cookie = initial.headers.get('set-cookie').split(';')[0];
+let cookie = initial.headers.get('set-cookie').split(';')[0];
 const query = new URL(initial.headers.get('location')).searchParams;
 const plain = decrypt(
 	query.get('c'),
@@ -22,6 +22,7 @@ const cipher = String(
 );
 const callback = await invoke('/?AUTHWAVE_RESPONSE_DATA=' + encodeURIComponent(cipher), cookie);
 assert.equal(callback.status, 303);
+cookie = callback.headers.get('set-cookie').split(';')[0];
 assert.deepEqual(await (await invoke('/', cookie)).json(), {
 	id: 'next-smoke',
 	email: 'next@example.test',
