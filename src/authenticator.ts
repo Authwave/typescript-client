@@ -157,8 +157,10 @@ export class Authenticator {
 		this.tidyResponseData(returnQuery);
 	}
 	private tidyResponseData(returnQuery: string | null = null): void {
-		const uri =
-			returnQuery === null ? this.currentUriPath : this.currentUriPath.withQuery(returnQuery);
+		const parsed = new URL(String(this.currentUriPath), 'https://authwave.invalid');
+		const path = '/' + parsed.pathname.replace(/\\/g, '%5C').replace(/^\/+/, '');
+		const local = new Uri(path + parsed.hash).withQuery(this.currentUriPath.getQuery());
+		const uri = returnQuery === null ? local : local.withQuery(returnQuery);
 		this.redirectHandler.redirect(uri.withoutQueryValue(Authenticator.RESPONSE_QUERY_PARAMETER));
 	}
 }

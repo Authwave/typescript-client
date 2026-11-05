@@ -33,6 +33,8 @@ Register the application with your provider and configure its client return URI.
 
 Install and build this local repository with `npm ci && npm run build`. From your application, run `npm install /absolute/path/to/typescript-client`. This creates the local package dependency; no npm publication is implied.
 
+Callback cleanup redirects use a local path without a scheme or host. The client removes the authentication response parameter while preserving the other query values and fragment.
+
 Runtime integrations
 --------------------
 
