@@ -1,6 +1,6 @@
 # PHP reference parity
 
-Reference: `Authwave/php-client` commit `b35909368b3bd78bb3c7401c694aef02d6a560dd` (the sibling checkout in local tests). Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
+Reference: `Authwave/php-client` commit `4dcc01fe5d07933400c82695bf9574097ee19d43` (the sibling checkout in local tests). Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
 
 | PHP source | TypeScript source / export | Validation |
 | --- | --- | --- |

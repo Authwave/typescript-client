@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: Authwave/php-client
-          ref: b35909368b3bd78bb3c7401c694aef02d6a560dd
+          ref: 4dcc01fe5d07933400c82695bf9574097ee19d43
           path: php-client
       - uses: actions/setup-node@v6
         with:
