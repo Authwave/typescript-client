@@ -33,6 +33,8 @@ Register the application with your provider and configure its client return URI.
 
 Install and build this local repository with `npm ci && npm run build`. From your application, run `npm install /absolute/path/to/typescript-client`. This creates the local package dependency; no npm publication is implied.
 
+A token can encrypt only its first complete request. Repeating the same request is allowed; a different payload raises TokenReuseException. Create a fresh token for a different action or return query, and do not copy tokens or reuse supplied IVs. Session serialisation retains the binding. Tokens restored from older sessions without a binding can still decrypt responses, but require a fresh token to start another request.
+
 Runtime integrations
 --------------------
 

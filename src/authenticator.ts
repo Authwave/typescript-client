@@ -56,13 +56,14 @@ export class Authenticator {
 	login(token: Token | null = null): void {
 		if (this.isLoggedIn()) return;
 		token ??= new Token(this.secret);
+		const loginUri = this.getLoginUri(token);
 		this.sessionData = new SessionData(
 			token,
 			null,
 			(this.returnUri ?? this.currentUriPath).getQuery(),
 		);
 		this.session.set(SessionData.STORE_KEY, this.sessionData);
-		this.redirectHandler.redirect(this.getLoginUri(token));
+		this.redirectHandler.redirect(loginUri);
 	}
 	logout(redirectTo: UriLike | null = null, token: Token | null = null): void {
 		const isFake = this.user?.email === Authenticator.FAKE_EMAIL;

@@ -61,10 +61,13 @@ test('tokens are random, deterministic per token, supplied IV identities preserv
 	const token = new A.Token(secret, sessionIv, iv);
 	assert.equal(token.getIv(), iv);
 	assert.equal(token.getSecretIv(), sessionIv);
-	assert.equal(String(token.generateRequestCipher()), String(token.generateRequestCipher()));
+	assert.equal(
+		String(token.generateRequestCipher('action=login')),
+		String(token.generateRequestCipher('action=login')),
+	);
 	assert.notEqual(
-		String(token.generateRequestCipher()),
-		String(new A.Token(secret).generateRequestCipher()),
+		String(token.generateRequestCipher('action=login')),
+		String(new A.Token(secret).generateRequestCipher('action=login')),
 	);
 	assert.equal(
 		A.decrypt(String(token.generateRequestCipher('action=login')), iv, secret),
