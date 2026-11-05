@@ -1,6 +1,6 @@
 # PHP reference parity
 
-Reference: the sibling `Authwave/php-client` checkout. Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
+Reference: `Authwave/php-client` commit `b35909368b3bd78bb3c7401c694aef02d6a560dd` (the sibling checkout in local tests). Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
 
 | PHP source | TypeScript source / export | Validation |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Reference: the sibling `Authwave/php-client` checkout. Every source class is rep
 | `AuthwaveException.php` | `src/errors.ts`: `AuthwaveException` | Base inheritance |
 | `SessionNotStartedException.php` | `src/errors.ts`: same name | Absent session rejection |
 | `NotLoggedInException.php` | `src/errors.ts`: same name | Missing user, token, data |
-| `InsecureProtocolException.php` | `src/errors.ts`: same name | HTTPS policy, localhost and literal `127.0.0.127` exceptions |
+| `InsecureProtocolException.php` | `src/errors.ts`: same name | HTTPS policy, localhost, literal `127.0.0.127`, and HTTP `.test` exceptions |
 | `InvalidUserDataSerializationException.php` | `src/errors.ts`: same name | Low-level decoder shape validation |
 | `ResponseCipherDecryptionException.php` | `src/errors.ts`: same name | Declaration preserved; not thrown by normal response processing, as in PHP |
 | `ProviderUri/BaseProviderUri.php` | `src/uri.ts`: `BaseProviderUri` | Same constants, RFC1738 query encoding, hex return URI, provider origin |
@@ -58,3 +58,5 @@ The differential suite executes PHP's actual source with fixed nonces and compar
 `test/core.test.mjs` covers the PHP unit-test behaviors and additional JSON/session checks. `test/parity.test.mjs` and `test/php-oracle.php` compare the two implementations directly. `test/runtime.test.mjs` exercises Node/Express over local HTTP and Next.js with actual `NextRequest`/`NextResponse` objects, including callback failures, session isolation, cookies, expiry, and failed persistence.
 
 Browser login/logout against a real configured Authwave provider is not automated here. No claim of live deployment verification is made.
+
+Provider HTTP policy also allows the `.test` hostname suffix (case-insensitive, ignoring trailing DNS dots), for local test providers. The exception does not allow other schemes.

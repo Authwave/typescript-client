@@ -1,0 +1,41 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+    defaults:
+      run:
+        working-directory: typescript-client
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: typescript-client
+      - uses: actions/checkout@v6
+        with:
+          repository: Authwave/php-client
+          ref: b35909368b3bd78bb3c7401c694aef02d6a560dd
+          path: php-client
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: typescript-client/package-lock.json
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sodium, curl
+          tools: composer
+          coverage: none
+      - name: Install PHP reference dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist
+        working-directory: php-client
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run typecheck
