@@ -64,7 +64,14 @@ export abstract class BaseProviderUri extends Uri {
 	static readonly QUERY_STRING_DEPLOYMENT_ID = 'd';
 	constructor(baseUri: string) {
 		const url = new URL(baseUri.includes('://') ? baseUri : `https://${baseUri}`);
-		if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.127' && url.protocol !== 'https:')
+		const isTestHttp =
+			url.protocol === 'http:' && url.hostname.toLowerCase().replace(/\.+$/, '').endsWith('.test');
+		if (
+			url.hostname !== 'localhost' &&
+			url.hostname !== '127.0.0.127' &&
+			!isTestHttp &&
+			url.protocol !== 'https:'
+		)
 			throw new InsecureProtocolException(url.protocol.slice(0, -1));
 		super(url.origin);
 	}
