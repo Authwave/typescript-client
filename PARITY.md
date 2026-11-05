@@ -1,6 +1,6 @@
 # PHP reference parity
 
-Reference: the sibling `Authwave/php-client` checkout. Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
+Reference: `Authwave/php-client` commit `72c213ddef1797cd096757e1c8c70d826abd7514`. Every source class is represented below. Parity means equivalent client features and wire behavior, with the runtime adaptations described here; it is not a claim that PHP and JavaScript have identical type systems or every inherited PSR-7 URI operation.
 
 | PHP source | TypeScript source / export | Validation |
 | --- | --- | --- |
@@ -45,6 +45,8 @@ The differential suite executes PHP's actual source with fixed nonces and compar
 - `getUser()` remains deprecated and returns the same compatibility `User` instance as `getAuthUser()`.
 
 ## Runtime adaptations
+
+Tokens retain the first complete request plaintext and reject different payloads with the same nonce. Repeating an identical request remains deterministic. The binding is persisted in session serialisation. Legacy tokens without a known binding may decrypt responses but cannot encrypt another request. Login builds the request before replacing pending exchange data.
 
 - Constructor arguments use an options object; URI-like arguments accept strings, `Uri`, and standard `URL` objects. `Uri` provides the operations needed by the client, not the full external PHP HTTP dependency API.
 - PHP's native `$_SESSION` has no Node equivalent. `GlobalSessionContainer` wraps an explicitly supplied per-request record. Omitting it throws; no process-global user storage is introduced.
