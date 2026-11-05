@@ -44,6 +44,8 @@ Handlers receive an `Authenticator` and the request. Node handlers return a stri
 
 See [working examples](examples) and the sibling [wiki](../typescript-client.wiki/Home.md), particularly its [Quick start guide](../typescript-client.wiki/Quick-start-guide.md). Production deployments need HTTPS and shared persistent session storage. `MemorySessionStore` is for local development. Never expose serialized session records, which contain token secrets, to the browser.
 
+Successful authentication replaces the session ID before saving the identity and invalidates the old ID, preserving unrelated session data. Express uses express-session regeneration. Custom Node.js and Next.js SessionStore implementations must provide delete(id): Promise<void>. Custom SessionContainer implementations must provide regenerate(): void; GlobalSessionContainer accepts the regeneration callback as its second argument. This callback must replace the ID, invalidate the old session and preserve the data. Throwing stops authentication. Ordinary session restoration keeps its ID.
+
 Running tests
 -------------
 

@@ -46,6 +46,8 @@ The differential suite executes PHP's actual source with fixed nonces and compar
 
 ## Runtime adaptations
 
+Successful authentication now regenerates the session ID before saving the identity and invalidates the old session. Unrelated data is preserved, and ordinary restoration keeps its ID. Custom session containers must provide regeneration, and custom runtime stores must support deleting the old ID.
+
 - Constructor arguments use an options object; URI-like arguments accept strings, `Uri`, and standard `URL` objects. `Uri` provides the operations needed by the client, not the full external PHP HTTP dependency API.
 - PHP's native `$_SESSION` has no Node equivalent. `GlobalSessionContainer` wraps an explicitly supplied per-request record. Omitting it throws; no process-global user storage is introduced.
 - PHP header-and-exit becomes `RedirectSignal`. Runtime adapters catch it and save before sending 303 responses. Test redirect handlers may return normally.

@@ -12,3 +12,5 @@ export class InvalidUserDataSerializationException extends AuthwaveException {}
 export class ResponseCipherDecryptionException extends AuthwaveException {}
 export class DecryptionFailureException extends AuthwaveException {}
 export class EncryptionFailureException extends AuthwaveException {}
+
+export class SessionRegenerationException extends AuthwaveException {}

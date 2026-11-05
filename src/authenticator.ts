@@ -87,6 +87,7 @@ export class Authenticator {
 	fakeLogin(userId: string, email: string | null = null, redirectTo = '/'): void {
 		const iv = new InitVector();
 		const token = new Token(this.secret, iv);
+		this.session.regenerate();
 		this.session.set(SessionData.STORE_KEY, new SessionData(token));
 		const data = new UserResponseData(userId, email ?? Authenticator.FAKE_EMAIL);
 		this.session.set(SessionData.STORE_KEY, new SessionData(token, data));
@@ -148,6 +149,7 @@ export class Authenticator {
 			throw new TypeError('Expected user id/email scalar');
 		};
 		const userData = new UserResponseData(scalar(data?.id), scalar(data?.email));
+		if (!this.isLoggedIn()) this.session.regenerate();
 		this.user = new User(userData.getId(), userData.getEmail());
 		const wasInvoked = this.sessionData.hasInvokedAuthenticationCallback();
 		const next = new SessionData(token, userData, returnQuery);

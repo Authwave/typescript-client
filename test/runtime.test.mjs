@@ -82,15 +82,24 @@ for (const runtime of ['node', 'express', 'next'])
 		}
 		const first = await invoke('/login');
 		assert.equal(first.status, 303);
-		const cookie = first.headers.get('set-cookie').split(';')[0];
+		let cookie = first.headers.get('set-cookie').split(';')[0];
 		assert.ok(cookie);
+		const oldCookie = cookie;
 		const callback = simulateProvider(first.headers.get('location'));
 		const completed = await invoke(callback, cookie);
 		assert.equal(completed.status, 303);
 		assert.equal(new URL(completed.headers.get('location'), origin).pathname, '/callback');
+		cookie = completed.headers.get('set-cookie').split(';')[0];
+		assert.notEqual(cookie, oldCookie);
+		const oldSession = await invoke('/callback', oldCookie);
+		assert.equal((await oldSession.json()).loggedIn, false);
+		const replay = await invoke(callback, oldCookie);
+		assert.equal(replay.status, 303);
 		const restored = await invoke('/callback', cookie);
 		assert.deepEqual(await restored.json(), { loggedIn: true, id: 'user-id' });
 		assert.equal(restored.headers.get('cache-control'), 'no-store');
+		const restoredCookie = restored.headers.get('set-cookie');
+		if (restoredCookie) assert.equal(restoredCookie.split(';')[0], cookie);
 		const outsider = await invoke('/callback');
 		assert.equal((await outsider.json()).loggedIn, false);
 		const logout = await invoke('/logout', cookie);
@@ -137,6 +146,7 @@ test('store failures prevent redirects; Express missing session reaches next', a
 			clientKey,
 			store: {
 				get: async () => undefined,
+				delete: async () => {},
 				set: async () => {
 					throw new Error('store failed');
 				},
